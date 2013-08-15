@@ -1,17 +1,14 @@
 #views.py
 
-from flask import Flask, flash, redirect, render_template, request, \
-                    session, url_for, g
-                    
+from flasktaskr import app, db
+from flask import flash, redirect, render_template, request, \
+                    session, url_for
 from functools import wraps
-import sqlite3
+from flasktaskr.forms import AddTask
+from flasktaskr.models import FTasks
 
-app = Flask(__name__)
-app.config.from_object('config')
 
-def connect_db():
-    return sqlite3.connect(app.config['DATABASE'])
-    
+#decorator function to control login    
 def login_required(test):
     @wraps(test)
     def wrap(*args, **kwargs):
@@ -21,13 +18,17 @@ def login_required(test):
             flash('You need to login first.')
             return redirect(url_for('login'))
     return wrap
+
     
+#logout    
 @app.route('/logout/')
 def logout():
     session.pop('logged_in',None)
     flash('You are logged out. Bye. :(')
     return redirect (url_for('login'))
+
     
+#main login    
 @app.route('/',methods=['POST','GET'])
 def login():
     error = None
@@ -38,46 +39,49 @@ def login():
             session['logged_in'] = True
             return redirect(url_for('tasks'))
     return render_template('login.html', error=error)
-    
+
+
+#Task fetch all from db    
 @app.route('/tasks/')
 @login_required
-def tasks():
-    g.db = connect_db()
-    cur = g.db.execute('SELECT name, due_date,priority,task_id FROM ftasks WHERE status=1')
-    open_tasks =[ dict(name=row[0],due_date=row[1],priority=row[2],task_id=row[3]) for row in cur.fetchall()]
-    cur = g.db.execute('SELECT name, due_date,priority,task_id FROM ftasks WHERE status=0')
-    closed_tasks=[dict(name=row[0],due_date=row[1],priority=row[2],task_id=row[3]) for row in cur.fetchall()]
-    g.db.close()
-    return render_template('tasks.html',open_tasks=open_tasks,closed_tasks=closed_tasks)
-    
+def tasks(error=None):
+    error = error
+    open_tasks = db.session.query(FTasks).filter_by(status='1').order_by(FTasks.due_date.asc())
+    closed_tasks = db.session.query(FTasks).filter_by(status='0').order_by(FTasks.due_date.asc())
+    return render_template('tasks.html',form = AddTask(request.form),
+            open_tasks=open_tasks, closed_tasks = closed_tasks, error=error)
+
+
 #Add new tasks:
 @app.route('/add/',methods=['POST'])
 @login_required
 def new_task():
-    g.db = connect_db()
-    name = request.form['name']
-    date = request.form['due_date']
-    priority = request.form['priority']
-    if not name or not date or not priority:
-        flash('ALL fields are required. Please try again.')
-        return redirect(url_for('tasks'))
-    else:
-        g.db.execute('INSERT INTO ftasks(name,due_date,priority,status) VALUES(?,?,?,1)',
-        [request.form['name'],request.form['due_date'],request.form['priority']])
-        g.db.commit()
-        g.db.close()
+    form = AddTask(request.form)
+    error = None
+    if form.validate():
+        new_task = FTasks(
+                    form.name.data,
+                    form.due_date.data,
+                    form.priority.data,
+                    '1'
+                    )
+        db.session.add(new_task)
+        db.session.commit()
         flash('New entry was successfully posted. Thanks.')
-        return redirect(url_for('tasks'))
+    else:
+        error = 'Invalid data. Please try again :) '
+        return tasks(error)
+    return redirect(url_for('tasks'))
+
         
 #Mark tasks as complete:
 @app.route('/complete/<int:task_id>/',)
 @login_required
 def complete(task_id):
-    g.db = connect_db()
-    cur = g.db.execute('UPDATE ftasks SET status = 0 WHERE task_id='+str(task_id))
-    g.db.commit()
-    g.db.close()
-    flash('The task was marked as complete.')
+    new_id = task_id
+    db.session.query(FTasks).filter_by(task_id=new_id).update({"status":"0"})
+    db.session.commit()
+    flash('The task was marked as complete. Nice.')
     return redirect(url_for('tasks'))
     
 
@@ -85,21 +89,20 @@ def complete(task_id):
 @app.route('/delete/<int:task_id>/',)
 @login_required
 def delete_entry(task_id):
-    g.db = connect_db()
-    cur = g.db.execute('DELETE FROM ftasks WHERE task_id='+str(task_id))
-    g.db.commit()
-    g.db.close()
-    flash('The task was deleted.')
+    new_id = task_id
+    db.session.query(FTasks).filter_by(task_id=new_id).delete()
+    db.session.commit()
+    flash('The task was deleted. Why not add a new one?')
     return redirect(url_for('tasks'))
+
     
 #Uncomplete the closed tasks:
 @app.route('/uncomplete/<int:task_id>/',)
 @login_required
 def uncomplete(task_id):
-    g.db = connect_db()
-    cur = g.db.execute('UPDATE ftasks SET status=1 WHERE task_id='+str(task_id))
-    g.db.commit()
-    g.db.close()
+    new_id = task_id
+    db.session.query(FTasks).filter_by(task_id=new_id).update({'status':'1'})
+    db.session.commit()
     flash('The task was marked as uncomplete.')
     return redirect(url_for('tasks'))
     
