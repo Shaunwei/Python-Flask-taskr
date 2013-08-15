@@ -33,4 +33,13 @@ Dev log :
              
              make website nice :)      #using jQ & jS
              
+
+Test:
+             
+             package requirement: flask , flask-wtf, flask-sqlalchemy
+             
+             python environment: python 2.7.5
+             
+             $ python run.py           #your page will be on : 127.0.0.1:8000
+             
              
