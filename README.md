@@ -21,3 +21,14 @@ Change log :
                  
                     
              v1.0 : use basic flask knowledge to bulid website
+
+
+Dev log :
+             
+             add user sign up page & manage
+             
+             merge blog page
+             
+             add social media API
+             
+             
