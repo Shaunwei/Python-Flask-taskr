@@ -31,4 +31,6 @@ Dev log :
              
              add social media API
              
+             make website nice :)      #using jQ & jS
+             
              
