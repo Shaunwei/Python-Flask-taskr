@@ -14,7 +14,9 @@ Current Version: v2.0
 
 
 
-Change log : v2.0 : change db control from sqlite3 to sqlalchemy
+Change log : 
+             
+             v2.0 : change db control from sqlite3 to sqlalchemy
                     use wtform to control input data
                  
                     
