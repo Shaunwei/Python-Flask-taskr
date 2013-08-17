@@ -15,6 +15,14 @@ Current Version: v2.0
 
 
 Change log : 
+
+             v3.0 : user sign up page added 
+                    user information added in sqlite
+                    file system remodel
+                    error handler pages added(404, 500)
+                    unittest & error log added
+                    
+                    
              
              v2.0 : change db control from sqlite3 to sqlalchemy
                     use wtform to control input data
@@ -25,8 +33,7 @@ Change log :
 
 Dev log :
              
-             add user sign up page & manage
-             
+            
              merge blog page
              
              add social media API
