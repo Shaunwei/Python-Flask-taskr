@@ -1,11 +1,12 @@
 #views.py
 
-from flasktaskr import app, db
+from app import app, db
 from flask import flash, redirect, render_template, request, \
                     session, url_for
 from functools import wraps
-from flasktaskr.forms import AddTask
-from flasktaskr.models import FTasks
+from app.forms import AddTask, RegisterForm, LoginForm
+from app.models import FTasks, User
+from sqlalchemy.exc import IntegrityError
 
 
 #decorator function to control login    
@@ -24,6 +25,7 @@ def login_required(test):
 @app.route('/logout/')
 def logout():
     session.pop('logged_in',None)
+    session.pop('user_id',None)
     flash('You are logged out. Bye. :(')
     return redirect (url_for('login'))
 
@@ -33,12 +35,18 @@ def logout():
 def login():
     error = None
     if request.method =="POST":
-        if request.form['username'] != app.config['USERNAME'] or request.form['password'] != app.config['PASSWORD']:
+        name = request.form['username']
+        password = request.form['password']
+        #u = User.query.filter_by(name=name,password=password).first()
+        u = db.session.query(User).filter_by(name=name,password=password).first()
+        if u is None:
             error = 'Invalid Credentials. Please try again.'
         else:
             session['logged_in'] = True
+            session['user_id'] = u.id
+            flash('You are logged in. Go Crazy.')
             return redirect(url_for('tasks'))
-    return render_template('login.html', error=error)
+    return render_template('login.html', form=LoginForm(request.form),error=error)
 
 
 #Task fetch all from db    
@@ -53,7 +61,7 @@ def tasks(error=None):
 
 
 #Add new tasks:
-@app.route('/add/',methods=['POST'])
+@app.route('/add/',methods=['POST','GET'])
 @login_required
 def new_task():
     form = AddTask(request.form)
@@ -63,7 +71,9 @@ def new_task():
                     form.name.data,
                     form.due_date.data,
                     form.priority.data,
-                    '1'
+                    form.posted_date.data,
+                    '1',
+                    session['user_id']
                     )
         db.session.add(new_task)
         db.session.commit()
@@ -105,4 +115,49 @@ def uncomplete(task_id):
     db.session.commit()
     flash('The task was marked as uncomplete.')
     return redirect(url_for('tasks'))
+    
+    
+#for new user to register
+@app.route('/register/', methods=['GET','POST'])
+def register():
+    error = None
+    form = RegisterForm(request.form)
+    if form.validate():
+        new_user = User(
+                form.name.data,
+                form.email.data,
+                form.password.data,
+                )
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Thanks for registering. Please login.')
+            return redirect(url_for('login'))
+        except IntegrityError:
+            error = 'Oh no! That username and/or email already exist. Please try again.'
+    else:
+        if request.method == "POST" :
+            flash_errors(form)    
+    return render_template('register.html', form = form, error=error)
+    
+
+#display error messages on template
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash (u"Error in the %s field - %s"%(
+                    getattr(form,field).label.text, error),'error')
+    
+
+#errorhandler
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'),500
+    
+@app.errorhandler(404)
+def internal_error(error):
+    return render_template('404.html'),400
+    
     

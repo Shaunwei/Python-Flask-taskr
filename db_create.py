@@ -1,7 +1,7 @@
 #db_create.py
 
-from flasktaskr import db
-from flasktaskr.models import FTasks
+from app import db
+from app.models import FTasks
 from datetime import date
 
 #create the database and the db table
