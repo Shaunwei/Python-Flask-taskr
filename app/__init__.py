@@ -23,3 +23,8 @@ if not app.debug:
     app.logger.info('errors')
 
 from app import views, models
+from app.users.views import mod as usersMod
+from app.tasks.views import mod as tasksMod
+
+app.register_blueprint(usersMod)
+app.register_blueprint(tasksMod)

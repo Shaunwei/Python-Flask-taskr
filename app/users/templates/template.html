@@ -7,7 +7,7 @@
     <meta name="keywords" content="">
     <meta name="author" content="">
     <meta charset="utf-8">
-    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="{{url_for('users.static',filename='bootstap.css')}}" ref="stylesheet">
     <!-- <link rel="stylesheet" href="{{url_for('static',filename='styles.css')}}"> -->
     <style>body{padding-top:65px;}</style>
   </head>
@@ -25,9 +25,9 @@
           </ul>
           <ul class="nav pull-right">
             {% if not session.logged_in %}
-              <li><a href="/users/register">Signup</a></li>
+              <li><a href="{{url_for('users.register')}}">Signup</a></li>
               {% else %}
-              <li><a href="/users/logout">Logout</a></li>
+              <li><a href="{{url_for('users.logout')}}">Logout</a></li>
             {% endif %}
           </ul>
         </div>
