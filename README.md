@@ -10,11 +10,17 @@ Email : shaunweix@gmail.com
 
 
 
-Current Version: v2.0
+Current Version: v4.0
 
 
 
 Change log : 
+
+             v4.0 : use flask - blueprint to manage file system
+                    use bootstrap as front-end
+                    deploy on Heroku
+                    http://immense-earth-8378.herokuapp.com/
+                    
 
              v3.0 : user sign up page added 
                     user information added in sqlite
@@ -43,10 +49,19 @@ Dev log :
 
 Test:
              
-             package requirement: flask , flask-wtf, flask-sqlalchemy
+             requirements.txt:         Flask==0.10.1
+                                       Flask-SQLAlchemy==1.0
+                                       Flask-WTF==0.9.0
+                                       Jinja2==2.7.1
+                                       MarkupSafe==0.18
+                                       SQLAlchemy==0.8.2
+                                       WTForms==1.0.4
+                                       Werkzeug==0.9.3
+                                       nose==1.3.0
+
              
              python environment: python 2.7.5
              
-             $ python run.py           #your page will be on : 127.0.0.1:8000
+             $ python run.py           #your page will be on : 127.0.0.1:4000
              
              
