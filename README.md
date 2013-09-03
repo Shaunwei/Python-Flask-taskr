@@ -19,7 +19,7 @@ Change log :
              v4.0 : use flask - blueprint to manage file system
                     use bootstrap as front-end
                     deploy on Heroku
-                    http://immense-earth-8378.herokuapp.com/
+                    http://flask-taskr.herokuapp.com/
                     
 
              v3.0 : user sign up page added 
